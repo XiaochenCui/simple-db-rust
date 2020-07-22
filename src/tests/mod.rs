@@ -41,5 +41,3 @@ fn init_log() {
         })
         .init();
 }
-
-mod heap_table_test {}
