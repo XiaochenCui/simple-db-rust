@@ -1,17 +1,18 @@
+use crate::database::*;
+use crate::table::*;
+use crate::transaction_id::*;
+
+use std::collections::HashMap;
+use std::panic;
+
+use std::sync::Arc;
+
+use log::{debug, info};
+use std::sync::Once;
+
 #[cfg(test)]
 mod tests {
-
-    use crate::database::*;
-    use crate::table::*;
-    use crate::transaction_id::*;
-
-    use std::collections::HashMap;
-    use std::panic;
-
-    use std::sync::Arc;
-
-    use log::{debug, info};
-    use std::sync::Once;
+    use super::*;
 
     static INIT: Once = Once::new();
 
