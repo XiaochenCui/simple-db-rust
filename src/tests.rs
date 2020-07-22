@@ -1,5 +1,3 @@
-
-
 #[cfg(test)]
 mod tests {
 
@@ -7,14 +5,13 @@ mod tests {
     use crate::table::*;
     use crate::transaction_id::*;
 
-
     use std::collections::HashMap;
     use std::panic;
 
     use std::sync::Arc;
 
-    use std::sync::Once;
     use log::{debug, info};
+    use std::sync::Once;
 
     static INIT: Once = Once::new();
 
@@ -24,7 +21,6 @@ mod tests {
         Database::global().get_buffer_pool().clear();
     }
 
-    // #[test]
     fn init_log() {
         use env_logger::Builder;
 
@@ -48,8 +44,7 @@ mod tests {
             .init();
     }
 
-    mod heap_table_test {
-    }
+    mod heap_table_test {}
 
     mod scan_test {
         use super::*;

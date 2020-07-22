@@ -7,6 +7,6 @@ mod permissions;
 mod row;
 mod sequential_scan;
 mod table;
+mod tests;
 mod transaction_id;
 mod util;
-mod tests;
