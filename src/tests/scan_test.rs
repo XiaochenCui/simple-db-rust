@@ -1,7 +1,7 @@
 use super::*;
 
-#[test]
 // java: simpledb.systemtest.ScanTest#testSmall
+#[test]
 fn test_small() {
     setup();
 

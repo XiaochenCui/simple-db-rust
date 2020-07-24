@@ -1,4 +1,5 @@
 mod scan_test;
+mod btree_test;
 
 use crate::database::*;
 use crate::sequential_scan::SequentialScan;
