@@ -1,4 +1,5 @@
 use super::*;
+use heap_table::create_random_heap_table;
 
 // java: simpledb.systemtest.ScanTest#testSmall
 #[test]

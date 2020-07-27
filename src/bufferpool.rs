@@ -12,7 +12,7 @@ use std::{
 };
 
 pub struct BufferPool {
-    buffer: HashMap<HeapPageID, Arc<RwLock<HeapPage>>>,
+    buffer: HashMap<Box<dyn PageID>, Arc<RwLock<dyn Page>>>,
 }
 
 impl BufferPool {

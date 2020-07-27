@@ -1,21 +1,5 @@
-use crate::cell::*;
-use crate::database::*;
-use crate::page::*;
-use crate::row::RowScheme;
-use crate::row::*;
-use bit_vec::BitVec;
-use log::debug;
-use rand::Rng;
-
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::SeekFrom;
-
-use io::ErrorKind;
-use std::io;
-use std::sync::{Arc, Mutex, MutexGuard};
+use super::table::*;
+use super::*;
 
 #[derive(Debug)]
 pub struct HeapTable {
@@ -25,40 +9,14 @@ pub struct HeapTable {
     pub read_count: i32,
 }
 
-impl HeapTable {
-    pub fn new(file_path: &str, row_scheme: RowScheme) -> HeapTable {
-        let file = File::open(file_path).unwrap();
-        HeapTable {
-            table_id: 0,
-            file: Arc::new(Mutex::new(file)),
-            row_scheme: Arc::new(row_scheme),
-            read_count: 0,
-        }
-    }
-
-    pub fn get_row_scheme(&self) -> Arc<RowScheme> {
-        Arc::clone(&self.row_scheme)
-    }
-
-    pub fn get_id(&self) -> i32 {
+impl Table for HeapTable {
+    fn get_id(&self) -> i32 {
         self.table_id
     }
-
-    pub fn get_num_pages(&self) -> usize {
-        let metadata = self.file.try_lock().unwrap().metadata().unwrap();
-        let n = metadata.len() as f64 / Database::global().get_buffer_pool().get_page_size() as f64;
-        // round::cell(n, 0) as usize
-        n.ceil() as usize
+    fn get_row_scheme(&self) -> Arc<RowScheme> {
+        Arc::clone(&self.row_scheme)
     }
-
-    pub fn get_file(&self) -> MutexGuard<File> {
-        match self.file.try_lock() {
-            Ok(a) => a,
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn read_page(&mut self, page_id: usize) -> Result<HeapPage, io::Error> {
+    fn read_page(&mut self, page_id: usize) -> Result<HeapPage, io::Error> {
         debug!("read page, table: {}, page: {}", self.table_id, page_id);
 
         self.read_count += 1;
@@ -91,6 +49,32 @@ impl HeapTable {
 
         let page = HeapPage::new(self.get_row_scheme(), bytes);
         Ok(page)
+    }
+}
+
+impl HeapTable {
+    pub fn new(file_path: &str, row_scheme: RowScheme) -> HeapTable {
+        let file = File::open(file_path).unwrap();
+        HeapTable {
+            table_id: 0,
+            file: Arc::new(Mutex::new(file)),
+            row_scheme: Arc::new(row_scheme),
+            read_count: 0,
+        }
+    }
+
+    pub fn get_num_pages(&self) -> usize {
+        let metadata = self.file.try_lock().unwrap().metadata().unwrap();
+        let n = metadata.len() as f64 / Database::global().get_buffer_pool().get_page_size() as f64;
+        // round::cell(n, 0) as usize
+        n.ceil() as usize
+    }
+
+    pub fn get_file(&self) -> MutexGuard<File> {
+        match self.file.try_lock() {
+            Ok(a) => a,
+            _ => unreachable!(),
+        }
     }
 }
 

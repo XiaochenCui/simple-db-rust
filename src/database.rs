@@ -1,6 +1,8 @@
 use crate::bufferpool::BufferPool;
 use crate::row::RowScheme;
 use crate::table::*;
+use crate::table::heap_table::*;
+use crate::table::table::*;
 
 use std::collections::HashMap;
 
@@ -44,7 +46,7 @@ impl Database {
         self.buffer_pool.try_write().unwrap()
     }
 
-    pub fn add_table(table: Arc<RwLock<HeapTable>>, _table_name: &str, _primary_key: &str) {
+    pub fn add_table(table: Arc<RwLock<Table>>, _table_name: &str, _primary_key: &str) {
         // add table to catolog
         // add a scope to release write lock (release lock at function return)
         let mut catlog = Database::global().get_write_catalog();
@@ -53,7 +55,7 @@ impl Database {
 }
 
 pub struct Catalog {
-    table_id_table_map: HashMap<i32, Arc<RwLock<HeapTable>>>,
+    table_id_table_map: HashMap<i32, Arc<RwLock<dyn Table>>>,
 }
 
 impl Catalog {
@@ -73,15 +75,15 @@ impl Catalog {
 
     pub(crate) fn add_table(
         &mut self,
-        table: Arc<RwLock<HeapTable>>,
+        table: Arc<RwLock<Table>>,
         _table_name: &str,
         _primary_key: &str,
     ) {
         self.table_id_table_map
-            .insert(table.try_read().unwrap().table_id, Arc::clone(&table));
+            .insert(table.try_read().unwrap().get_id(), Arc::clone(&table));
     }
 
-    pub fn get_table(&self, table_id: i32) -> RwLockWriteGuard<HeapTable> {
+    pub fn get_table(&self, table_id: i32) -> RwLockWriteGuard<dyn Table> {
         self.table_id_table_map
             .get(&table_id)
             .unwrap()

@@ -4,12 +4,16 @@ use log::debug;
 
 use std::sync::Arc;
 
+pub trait Page: Sync + Send {}
+
 pub struct HeapPage {
     // page_id: HeapPageID,
     row_scheme: Arc<RowScheme>,
     rows: Arc<Vec<Row>>,
     header: Vec<u8>,
 }
+
+impl Page for HeapPage {}
 
 impl HeapPage {
     pub fn new(row_scheme: Arc<RowScheme>, bytes: Vec<u8>) -> HeapPage {
