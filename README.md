@@ -5,3 +5,5 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4128/badge)](https://bestpractices.coreinfrastructure.org/projects/4128)
 
 A simple database writing in rust, inspired from mit 6.830
+
+![](/stack/resource/ar15.gif)
