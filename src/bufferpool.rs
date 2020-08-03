@@ -2,6 +2,8 @@ use crate::database::*;
 use crate::page::*;
 use crate::page_id::*;
 use crate::permissions::Permissions;
+use crate::macros::Key;
+use crate::macros::key;
 
 use crate::transaction_id::TransactionID;
 use log::debug;
@@ -12,7 +14,8 @@ use std::{
 };
 
 pub struct BufferPool {
-    buffer: HashMap<Box<dyn PageID>, Arc<RwLock<dyn Page>>>,
+    buffer: HashMap<Key, Arc<RwLock<dyn Page>>>,
+    // buffer: HashMap<Box<dyn PageID>, Arc<RwLock<dyn Page>>>,
 }
 
 impl BufferPool {
@@ -31,14 +34,14 @@ impl BufferPool {
         _tid: &TransactionID,
         page_id: HeapPageID,
         _permission: Permissions,
-    ) -> Option<RwLockWriteGuard<HeapPage>> {
+    ) -> Option<RwLockWriteGuard<dyn Page>> {
         // require lock
 
         // get page form buffer
         debug!("get page: {:?}", page_id);
-        debug!("buffer: {:?}", self.buffer.keys());
-        if self.buffer.contains_key(&page_id) {
-            return match self.buffer.get(&page_id) {
+        // debug!("buffer: {:?}", self.buffer.keys());
+        if self.buffer.contains_key(&key(page_id)) {
+            return match self.buffer.get(&key(page_id)) {
                 Some(v) => Some(v.try_write().unwrap()),
                 None => unreachable!(),
             };
@@ -57,9 +60,9 @@ impl BufferPool {
         };
 
         // add to buffer
-        self.buffer.insert(page_id, Arc::new(RwLock::new(page)));
+        self.buffer.insert(key(page_id), Arc::new(RwLock::new(page)));
 
-        return Some(self.buffer.get(&page_id).unwrap().try_write().unwrap());
+        return Some(self.buffer.get(&key(page_id)).unwrap().try_write().unwrap());
     }
 
     pub fn clear(&mut self) {

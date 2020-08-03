@@ -1,6 +1,8 @@
 #![feature(raw)]
 #![feature(maybe_uninit_ref)]
 
+use std::collections::{HashMap, hash_map::DefaultHasher};
+
 #[test]
 fn test_trait_obj_as_hashmap_key() {
     fn  eq_box(value: impl 'static + PartialEq) -> CmpDyn<Box<dyn 'static + DynPartialEq>> {
@@ -12,7 +14,6 @@ fn test_trait_obj_as_hashmap_key() {
     assert!(eq_box(1u8) != eq_box(1i8));
     assert!(eq_box(1u8) != eq_box("hello"));
     
-    use std::collections::{HashMap, hash_map::DefaultHasher};
     type Key = CmpDyn<Box<dyn 'static + DynHash<DefaultHasher>>, DefaultHasher>;
     fn key(value: impl 'static + Eq + Hash) -> Key { CmpDyn::new(Box::new(value)) }
     let mut map: HashMap<Key, &'static str> = HashMap::new();
@@ -151,3 +152,7 @@ impl<T, H1> Hash for CmpDyn<T, H1> where
 		}
 	}
 }
+
+pub type Key = CmpDyn<Box<dyn 'static + DynHash<DefaultHasher>>, DefaultHasher>;
+
+pub fn key(value: impl 'static + Eq + Hash) -> Key { CmpDyn::new(Box::new(value)) }
