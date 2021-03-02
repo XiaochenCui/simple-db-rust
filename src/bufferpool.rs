@@ -1,12 +1,14 @@
 use crate::database::*;
+// use crate::macros::key;
+// use crate::macros::Key;
 use crate::page::*;
 use crate::page_id::*;
 use crate::permissions::Permissions;
-use crate::macros::Key;
-use crate::macros::key;
 
 use crate::transaction_id::TransactionID;
+// use lazy_static::__Deref;
 use log::debug;
+use crate::page_id;
 
 use std::{
     collections::HashMap,
@@ -14,9 +16,16 @@ use std::{
 };
 
 pub struct BufferPool {
-    buffer: HashMap<Key, Arc<RwLock<dyn Page>>>,
-    // buffer: HashMap<Box<dyn PageID>, Arc<RwLock<dyn Page>>>,
+    buffer: HashMap<Key, Value>,
 }
+
+// // Use trait instead of generic, because BufferPool
+// // have to accommodate PageID in different types
+// type Key = Box<dyn PageID>;
+
+type Key = String;
+
+type Value = Arc<RwLock<dyn Page>>;
 
 impl BufferPool {
     pub fn new() -> BufferPool {
@@ -29,40 +38,49 @@ impl BufferPool {
         4096
     }
 
-    pub fn get_page(
-        &mut self,
-        _tid: &TransactionID,
-        page_id: HeapPageID,
-        _permission: Permissions,
-    ) -> Option<RwLockWriteGuard<dyn Page>> {
-        // require lock
-
-        // get page form buffer
-        debug!("get page: {:?}", page_id);
-        // debug!("buffer: {:?}", self.buffer.keys());
-        if self.buffer.contains_key(&key(page_id)) {
-            return match self.buffer.get(&key(page_id)) {
-                Some(v) => Some(v.try_write().unwrap()),
-                None => unreachable!(),
-            };
+    pub fn get_page(&self, key: Key) -> Option<RwLockWriteGuard<dyn Page>> {
+        // deserialize key to a page_id
+        debug!("get page: {:?}", key);
+        let result: Option<RwLockWriteGuard<dyn Page>>;
+        let pid: Box<dyn PageID>;
+        match page_id::deserialize(&key) {
+            Ok(v) => pid = v,
+            Err(e) => return None,
         }
 
-        // if page not exist in buffer, get it from disk
-        let catlog = Database::global().get_catalog();
-        let mut table = catlog.get_table(page_id.table_id);
-        let result = table.read_page(page_id.page_index);
-        let page = match result {
-            Ok(p) => p,
-            Err(e) => {
-                debug!("error: {}", e);
-                return None;
+        // get page form buffer
+        match self.buffer.get(&key) {
+            Some(v) => {
+                result = Some(v.try_write().unwrap());
+            }
+            None => {
+                // if page not exist in buffer, get it from disk
+                let catlog = Database::global().get_catalog();
+                let mut table = catlog.get_table(pid.get_table_id());
+                let result = table.read_page(pid.get_page_index());
+                let page = match result {
+                    Ok(p) => p,
+                    Err(e) => {
+                        debug!("error: {}", e);
+                        return None;
+                    }
+                };
+
+                // add to buffer
+                self.buffer
+                    .insert(key, Arc::new(RwLock::new(page)));
+
+                return Some(
+                    self.buffer
+                        .get(&key)
+                        .unwrap()
+                        .try_write()
+                        .unwrap(),
+                );
             }
         };
 
-        // add to buffer
-        self.buffer.insert(key(page_id), Arc::new(RwLock::new(page)));
-
-        return Some(self.buffer.get(&key(page_id)).unwrap().try_write().unwrap());
+        return result;
     }
 
     pub fn clear(&mut self) {

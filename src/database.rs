@@ -1,15 +1,10 @@
 use crate::bufferpool::BufferPool;
 use crate::row::RowScheme;
-use crate::table::*;
-use crate::table::heap_table::*;
 use crate::table::table::*;
 
 use std::collections::HashMap;
 
-use once_cell::sync::OnceCell;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
-
-static DB: OnceCell<Database> = OnceCell::new();
 
 pub static PAGE_SIZE: usize = 4096;
 
@@ -19,34 +14,30 @@ pub struct Database {
 }
 
 impl Database {
-    pub(crate) fn new() -> Database {
+    pub fn new() -> Database {
         Database {
             catalog: Arc::new(RwLock::new(Catalog::new())),
             buffer_pool: Arc::new(RwLock::new(BufferPool::new())),
         }
     }
 
-    pub fn global() -> &'static Database {
-        DB.get_or_init(|| Database::new())
-    }
-
-    pub(crate) fn get_catalog(&self) -> RwLockReadGuard<Catalog> {
+    pub fn get_catalog(&self) -> RwLockReadGuard<Catalog> {
         self.catalog.try_read().unwrap()
     }
 
-    pub(crate) fn get_buffer_pool(&self) -> RwLockWriteGuard<BufferPool> {
+    pub fn get_buffer_pool(&self) -> RwLockWriteGuard<BufferPool> {
         self.buffer_pool.try_write().unwrap()
     }
 
-    pub(crate) fn get_write_catalog(&self) -> RwLockWriteGuard<Catalog> {
+    pub fn get_write_catalog(&self) -> RwLockWriteGuard<Catalog> {
         self.catalog.try_write().unwrap()
     }
 
-    pub(crate) fn get_write_buffer_pool(&self) -> RwLockWriteGuard<BufferPool> {
+    pub fn get_write_buffer_pool(&self) -> RwLockWriteGuard<BufferPool> {
         self.buffer_pool.try_write().unwrap()
     }
 
-    pub fn add_table(table: Arc<RwLock<Table>>, _table_name: &str, _primary_key: &str) {
+    pub fn add_table(table: Arc<RwLock<dyn Table>>, _table_name: &str, _primary_key: &str) {
         // add table to catolog
         // add a scope to release write lock (release lock at function return)
         let mut catlog = Database::global().get_write_catalog();
@@ -81,21 +72,5 @@ impl Catalog {
     ) {
         self.table_id_table_map
             .insert(table.try_read().unwrap().get_id(), Arc::clone(&table));
-    }
-
-    pub fn get_table(&self, table_id: i32) -> RwLockWriteGuard<dyn Table> {
-        self.table_id_table_map
-            .get(&table_id)
-            .unwrap()
-            .try_write()
-            .unwrap()
-    }
-
-    pub fn get_write_table(&self, table_id: i32) -> RwLockWriteGuard<HeapTable> {
-        self.table_id_table_map
-            .get(&table_id)
-            .unwrap()
-            .try_write()
-            .unwrap()
     }
 }

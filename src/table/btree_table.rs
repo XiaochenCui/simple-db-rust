@@ -17,6 +17,10 @@ impl Table for BTreeTable {
     fn get_row_scheme(&self) -> Arc<RowScheme> {
         Arc::clone(&self.row_scheme)
     }
+
+    fn read_page(&mut self, page_id: usize) -> Result<Arc<dyn Page>, io::Error> {
+        todo!()
+    }
 }
 
 impl BTreeTable {
