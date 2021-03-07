@@ -9,7 +9,7 @@ pub struct BTreeTable {
     pub row_scheme: Arc<RowScheme>,
 }
 
-impl Table for BTreeTable {
+impl<'a> Table<'a> for BTreeTable {
     fn get_id(&self) -> i32 {
         self.table_id
     }
@@ -18,7 +18,7 @@ impl Table for BTreeTable {
         Arc::clone(&self.row_scheme)
     }
 
-    fn read_page(&mut self, page_id: usize) -> Result<Arc<dyn Page>, io::Error> {
+    fn read_page(&mut self, page_id: i32) -> Result<Arc<dyn Page>, io::Error> {
         todo!()
     }
 }
@@ -35,6 +35,7 @@ impl BTreeTable {
 }
 
 pub fn create_random_btree_table(
+    db: Arc<Database>,
     columns: i32,
     rows: i32,
     max_value: i32,
@@ -72,7 +73,7 @@ pub fn create_random_btree_table(
 
     // add to catalog
     let table_pointer = Arc::new(RwLock::new(table));
-    Database::add_table(Arc::clone(&table_pointer), "table", "");
+    // db.add_table(Arc::clone(&table_pointer), "table", "");
 
     // // write root page
 

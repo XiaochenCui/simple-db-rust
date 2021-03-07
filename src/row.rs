@@ -1,7 +1,8 @@
 use crate::cell::*;
-use std::{cell::RefCell, fmt, rc::Rc, sync::Arc};
-// use std::i32;
-use log::{debug, error};
+use log::debug;
+use log::error;
+use std::fmt;
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct Row {
@@ -106,18 +107,6 @@ pub fn display_rows(rows: &Vec<Row>) {
     content.push_str(" ... ]");
     debug!("{}", content);
 }
-
-// impl fmt::Display for Vec<Row> {
-// fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-// let mut content: String = "{".to_owned();
-// for cell in &self.cells {
-// let cell_str = format!("{}, ", cell.value);
-// content.push_str(&cell_str);
-// }
-// content.push_str(&"}");
-// write!(f, "{}", content,)
-// }
-// }
 
 #[derive(Debug)]
 pub struct RowScheme {

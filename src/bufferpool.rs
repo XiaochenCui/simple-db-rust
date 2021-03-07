@@ -1,6 +1,5 @@
+use crate::page::page::Page;
 use crate::database::*;
-// use crate::macros::key;
-// use crate::macros::Key;
 use crate::page::*;
 use crate::page_id::*;
 use crate::permissions::Permissions;
@@ -15,8 +14,8 @@ use std::{
     sync::{Arc, RwLock, RwLockWriteGuard},
 };
 
-pub struct BufferPool {
-    buffer: HashMap<Key, Value>,
+pub struct BufferPool<'value> {
+    buffer: HashMap<Key, Value<'value>>,
 }
 
 // // Use trait instead of generic, because BufferPool
@@ -25,10 +24,10 @@ pub struct BufferPool {
 
 type Key = String;
 
-type Value = Arc<RwLock<dyn Page>>;
+type Value<'a> = Arc<RwLock<dyn Page<'a>>>;
 
-impl BufferPool {
-    pub fn new() -> BufferPool {
+impl<'a> BufferPool<'_> {
+    pub fn new() -> BufferPool<'a> {
         BufferPool {
             buffer: HashMap::new(),
         }

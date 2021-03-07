@@ -10,7 +10,7 @@ pub static PAGE_SIZE: usize = 4096;
 
 pub struct Database {
     catalog: Arc<RwLock<Catalog>>,
-    buffer_pool: Arc<RwLock<BufferPool>>,
+    buffer_pool: Arc<RwLock<BufferPool<'a>>>,
 }
 
 impl Database {
@@ -37,10 +37,10 @@ impl Database {
         self.buffer_pool.try_write().unwrap()
     }
 
-    pub fn add_table(table: Arc<RwLock<dyn Table>>, _table_name: &str, _primary_key: &str) {
+    pub fn add_table(&self, table: Arc<RwLock<dyn Table>>, _table_name: &str, _primary_key: &str) {
         // add table to catolog
         // add a scope to release write lock (release lock at function return)
-        let mut catlog = Database::global().get_write_catalog();
+        let mut catlog = self.get_write_catalog();
         catlog.add_table(Arc::clone(&table), "table", "");
     }
 }

@@ -9,14 +9,16 @@ pub struct HeapTable {
     pub read_count: i32,
 }
 
-impl Table for HeapTable {
+impl<'a> Table<'a> for HeapTable {
     fn get_id(&self) -> i32 {
         self.table_id
     }
+
     fn get_row_scheme(&self) -> Arc<RowScheme> {
         Arc::clone(&self.row_scheme)
     }
-    fn read_page(&mut self, page_id: usize) -> Result<HeapPage, io::Error> {
+
+    fn read_page(&'a mut self, page_id: i32) -> Result<Arc<HeapPage>, io::Error> {
         debug!("read page, table: {}, page: {}", self.table_id, page_id);
 
         self.read_count += 1;
